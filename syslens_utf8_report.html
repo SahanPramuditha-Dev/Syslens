@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SysLens Telemetry Diagnostics Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 25, 40, 0.65);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --color-healthy: #10b981;
+            --color-degraded: #f59e0b;
+            --color-critical: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(at 10% 20%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                              radial-gradient(at 90% 80%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 2rem;
+        }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+        .header-title h1 { font-size: 1.75rem; font-weight: 700; color: #fff; }
+        .header-title p { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; margin-top: 0.25rem; }
+        .status-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--color-healthy);
+        }
+        .status-pill.degraded { color: var(--color-degraded); }
+        .status-pill.critical { color: var(--color-critical); }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .col-4 { grid-column: span 4; }
+        .col-8 { grid-column: span 8; }
+        .col-12 { grid-column: span 12; }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem; }
+        .metadata-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.9rem; }
+        .metadata-row span:first-child { color: var(--text-secondary); }
+        .metadata-row span:last-child { color: #fff; font-weight: 500; }
+        .metric-progress { margin-bottom: 1rem; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.4rem; }
+        .progress-outer { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
+        .progress-inner { height: 100%; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        th { color: var(--text-secondary); font-weight: 500; padding: 0.6rem; border-bottom: 1px solid var(--card-border); }
+        td { padding: 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.02); color: var(--text-primary); }
+        .badge { padding: 0.15rem 0.4rem; border-radius: 4px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; }
+        .badge-healthy { background: rgba(16, 185, 129, 0.15); color: var(--color-healthy); }
+        .badge-degraded { background: rgba(245, 158, 11, 0.15); color: var(--color-degraded); }
+        .badge-critical { background: rgba(239, 68, 68, 0.15); color: var(--color-critical); }
+        .recs-list { padding-left: 1.25rem; font-size: 0.9rem; color: var(--text-secondary); }
+        .recs-list li { margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-title">
+            <h1>SysLens System Report</h1>
+            <p>Generated on 2026-06-23 17:25:48</p>
+        </div>
+        <div class="status-pill degraded">
+            OVERALL STATUS: DEGRADED (68/100)
+        </div>
+    </header>
+    <main class="grid">
+        <div class="card col-4">
+            <h2 class="card-title">Environment Metadata</h2>
+            <div class="metadata-row"><span>Hostname</span><span>Jarvis-Mark1</span></div>
+            <div class="metadata-row"><span>Local IP</span><span>192.168.1.6</span></div>
+            <div class="metadata-row"><span>OS Platform</span><span>Windows 11</span></div>
+            <div class="metadata-row"><span>Architecture</span><span>AMD64</span></div>
+            <div class="metadata-row"><span>Uptime</span><span>1h 13m</span></div>
+        </div>
+        
+        <div class="card col-4">
+            <h2 class="card-title">Hardware Telemetry</h2>
+            <div class="metric-progress">
+                <div class="progress-label"><span>CPU Usage</span><span>5.1%</span></div>
+                <div class="progress-outer"><div class="progress-inner" style="width: 5.1%;"></div></div>
+            </div>
+            <div class="metric-progress">
+                <div class="progress-label"><span>Memory Usage</span><span>70.8%</span></div>
+                <div class="progress-outer"><div class="progress-inner" style="width: 70.8%; background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);"></div></div>
+            </div>
+        </div>
+        
+        <div class="card col-4">
+            <h2 class="card-title">Diagnostic Recommendations</h2>
+            <ul class="recs-list">
+                <li>System parameters are stable. No diagnostics required.</li>
+            </ul>
+        </div>
+        
+        <div class="card col-4">
+            <h2 class="card-title">Live Anomalies</h2>
+            <table>
+                <thead>
+                    <tr><th>Severity</th><th>Metric</th><th>Description</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan='3' style='text-align: center; color: #9ca3af;'>No telemetry anomalies or behavioral deviations detected.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card col-8">
+            <h2 class="card-title">Active Processes</h2>
+            <table>
+                <thead>
+                    <tr><th>PID</th><th>Name</th><th>CPU Usage</th><th>Memory Usage</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">13084</td>
+            <td style="color: #fff; font-weight: 500;">chrome.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">3.84%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">12364</td>
+            <td style="color: #fff; font-weight: 500;">chrome.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">3.12%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">7820</td>
+            <td style="color: #fff; font-weight: 500;">Code.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">2.61%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">18952</td>
+            <td style="color: #fff; font-weight: 500;">chrome.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">2.47%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">17108</td>
+            <td style="color: #fff; font-weight: 500;">Antigravity.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">2.07%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">1132</td>
+            <td style="color: #fff; font-weight: 500;">explorer.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">1.95%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">10884</td>
+            <td style="color: #fff; font-weight: 500;">chrome.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">1.8%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">21652</td>
+            <td style="color: #fff; font-weight: 500;">chrome.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">1.7%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">23276</td>
+            <td style="color: #fff; font-weight: 500;">WhatsApp.Root.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">1.65%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+        <tr>
+            <td style="color: #60a5fa; font-weight: 600;">8720</td>
+            <td style="color: #fff; font-weight: 500;">chrome.exe</td>
+            <td><span class="badge badge-healthy">0.0%</span></td>
+            <td><span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa;">1.63%</span></td>
+            <td style="color: #9ca3af;">running</td>
+        </tr>
+        
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>
