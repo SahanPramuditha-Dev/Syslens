@@ -7,11 +7,24 @@ class AnomalyDetector:
 
     def __init__(self, baseline: BehaviorBaseline = None):
         self.baseline = baseline or BehaviorBaseline()
+        from syslens.utils.config import load_config
+        self.config = load_config()
 
     def analyze(self, current_metrics: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Compare current telemetry against the baseline to return detected anomalies."""
         anomalies = []
-        stats = self.baseline.get_stats()
+        
+        # Get hour from current_metrics timestamp for time-aware baseline query
+        timestamp = current_metrics.get("timestamp", 0.0)
+        hour = None
+        if timestamp > 0.0:
+            try:
+                import time as pytime
+                hour = pytime.localtime(timestamp).tm_hour
+            except Exception:
+                pass
+        
+        stats = self.baseline.get_stats(hour)
 
         cpu_usage = current_metrics.get("cpu", {}).get("usage_percent", 0.0)
         mem_usage = current_metrics.get("memory", {}).get("usage_percent", 0.0)
@@ -23,11 +36,11 @@ class AnomalyDetector:
         
         # Calculate deviation (z-score)
         cpu_z = (cpu_usage - cpu_mean) / cpu_std if cpu_std > 0 else 0
-        if cpu_z > 2.0 or cpu_usage > 85.0:
+        if cpu_z > self.config.get("cpu_z_low", 2.0) or cpu_usage > self.config.get("cpu_usage_low", 85.0):
             severity = "LOW"
-            if cpu_z > 3.5 or cpu_usage > 90.0:
+            if cpu_z > self.config.get("cpu_z_high", 3.5) or cpu_usage > self.config.get("cpu_usage_high", 90.0):
                 severity = "HIGH"
-            elif cpu_z > 2.5 or cpu_usage > 75.0:
+            elif cpu_z > self.config.get("cpu_z_medium", 2.5) or cpu_usage > self.config.get("cpu_usage_medium", 75.0):
                 severity = "MEDIUM"
 
             anomalies.append({
@@ -46,11 +59,11 @@ class AnomalyDetector:
         mem_std = mem_baseline["std"]
         mem_z = (mem_usage - mem_mean) / mem_std if mem_std > 0 else 0
 
-        if mem_z > 2.0 or mem_usage > 85.0:
+        if mem_z > self.config.get("mem_z_low", 2.0) or mem_usage > self.config.get("mem_usage_low", 85.0):
             severity = "LOW"
-            if mem_z > 3.0 or mem_usage > 90.0:
+            if mem_z > self.config.get("mem_z_high", 3.0) or mem_usage > self.config.get("mem_usage_high", 90.0):
                 severity = "HIGH"
-            elif mem_z > 2.3 or mem_usage > 80.0:
+            elif mem_z > self.config.get("mem_z_medium", 2.3) or mem_usage > self.config.get("mem_usage_medium", 80.0):
                 severity = "MEDIUM"
 
             anomalies.append({
@@ -76,8 +89,13 @@ class AnomalyDetector:
             read_std = read_baseline["std"]
             read_z = (read_rate - read_mean) / read_std if read_std > 0 else 0
 
-            if read_z > 3.0:
-                severity = "HIGH" if read_z > 5.0 else "MEDIUM"
+            if read_z > self.config.get("disk_read_z_low", 3.0):
+                severity = "LOW"
+                if read_z > self.config.get("disk_read_z_high", 5.0):
+                    severity = "HIGH"
+                elif read_z > self.config.get("disk_read_z_medium", 4.0):
+                    severity = "MEDIUM"
+                
                 anomalies.append({
                     "metric": "disk_read_rate",
                     "current_value": round(read_rate / 1024 / 1024, 2),  # MB/s
@@ -94,8 +112,13 @@ class AnomalyDetector:
             write_std = write_baseline["std"]
             write_z = (write_rate - write_mean) / write_std if write_std > 0 else 0
 
-            if write_z > 3.0:
-                severity = "HIGH" if write_z > 5.0 else "MEDIUM"
+            if write_z > self.config.get("disk_write_z_low", 3.0):
+                severity = "LOW"
+                if write_z > self.config.get("disk_write_z_high", 5.0):
+                    severity = "HIGH"
+                elif write_z > self.config.get("disk_write_z_medium", 4.0):
+                    severity = "MEDIUM"
+                
                 anomalies.append({
                     "metric": "disk_write_rate",
                     "current_value": round(write_rate / 1024 / 1024, 2),  # MB/s
@@ -105,6 +128,81 @@ class AnomalyDetector:
                     "timestamp": time.time(),
                     "description": f"Disk Write rate ({round(write_rate/1024/1024, 2)} MB/s) exceeds baseline mean ({round(write_mean/1024/1024, 2)} MB/s)."
                 })
+
+        # Network Connections Anomaly
+        net_conn = current_metrics.get("plugins_data", {}).get("network_telemetry", {}).get("active_connections", 0.0)
+        if net_conn > 0:
+            net_baseline = stats.get("active_connections", {"mean": 25.0, "std": 10.0})
+            net_mean = net_baseline["mean"]
+            net_std = net_baseline["std"]
+            net_z = (net_conn - net_mean) / net_std if net_std > 0 else 0
+
+            if net_z > self.config.get("net_conn_z_low", 2.0) or net_conn > 350:
+                severity = "LOW"
+                if net_z > self.config.get("net_conn_z_high", 4.0) or net_conn > 600:
+                    severity = "HIGH"
+                elif net_z > self.config.get("net_conn_z_medium", 3.0) or net_conn > 450:
+                    severity = "MEDIUM"
+
+                anomalies.append({
+                    "metric": "active_connections",
+                    "current_value": net_conn,
+                    "baseline_mean": net_mean,
+                    "deviation_z": round(net_z, 2),
+                    "severity": severity,
+                    "timestamp": time.time(),
+                    "description": f"Active connections ({net_conn}) deviates from baseline mean ({net_mean})."
+                })
+
+        # GPU Utilization Anomaly
+        gpu_data = current_metrics.get("plugins_data", {}).get("gpu_analyzer", {})
+        if gpu_data and gpu_data.get("available"):
+            gpu_util = gpu_data.get("utilization_gpu_percent", 0.0)
+            gpu_baseline = stats.get("gpu_utilization", {"mean": 10.0, "std": 10.0})
+            gpu_mean = gpu_baseline["mean"]
+            gpu_std = gpu_baseline["std"]
+            gpu_z = (gpu_util - gpu_mean) / gpu_std if gpu_std > 0 else 0
+
+            if gpu_z > self.config.get("gpu_z_low", 2.0) or gpu_util > 85.0:
+                severity = "LOW"
+                if gpu_z > self.config.get("gpu_z_high", 4.0) or gpu_util > 95.0:
+                    severity = "HIGH"
+                elif gpu_z > self.config.get("gpu_z_medium", 3.0) or gpu_util > 75.0:
+                    severity = "MEDIUM"
+
+                anomalies.append({
+                    "metric": "gpu_utilization",
+                    "current_value": gpu_util,
+                    "baseline_mean": gpu_mean,
+                    "deviation_z": round(gpu_z, 2),
+                    "severity": severity,
+                    "timestamp": time.time(),
+                    "description": f"GPU utilization ({gpu_util}%) deviates from baseline mean ({gpu_mean}%)."
+                })
+
+        # Swap Memory Anomaly
+        swap_pct = current_metrics.get("memory", {}).get("swap_usage_percent", 0.0)
+        swap_baseline = stats.get("swap_usage_percent", {"mean": 10.0, "std": 10.0})
+        swap_mean = swap_baseline["mean"]
+        swap_std = swap_baseline["std"]
+        swap_z = (swap_pct - swap_mean) / swap_std if swap_std > 0 else 0
+
+        if swap_z > self.config.get("swap_z_low", 2.0) or swap_pct > 80.0:
+            severity = "LOW"
+            if swap_z > self.config.get("swap_z_high", 4.0) or swap_pct > 95.0:
+                severity = "HIGH"
+            elif swap_z > self.config.get("swap_z_medium", 3.0) or swap_pct > 90.0:
+                severity = "MEDIUM"
+
+            anomalies.append({
+                "metric": "swap_usage_percent",
+                "current_value": swap_pct,
+                "baseline_mean": swap_mean,
+                "deviation_z": round(swap_z, 2),
+                "severity": severity,
+                "timestamp": time.time(),
+                "description": f"Swap memory usage ({swap_pct}%) deviates from baseline mean ({swap_mean}%)."
+            })
 
         # Multi-Metric Correlations (behavior-based alerts)
         cpu_anomaly = next((a for a in anomalies if a["metric"] == "cpu_usage"), None)

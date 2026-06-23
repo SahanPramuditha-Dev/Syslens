@@ -126,6 +126,30 @@ class SystemHealthEngine:
                     ]
                 })
 
+        # System settings optimization check
+        settings = metrics.get("plugins_data", {}).get("system_settings", {})
+        if settings and settings.get("available"):
+            plan = settings.get("power_plan", "").lower()
+            if "saver" in plan:
+                diagnoses.append({
+                    "type": "Suboptimal Power Scheme",
+                    "severity": "MEDIUM",
+                    "message": "System is configured to 'Power Saver' mode. This restricts CPU speed.",
+                    "recommendations": [
+                        "Switch to Balanced or High Performance power plan: run 'powercfg /setactive SCHEME_MIN' (High Performance) or 'powercfg /setactive SCHEME_BALANCED' (Balanced)."
+                    ]
+                })
+            wsearch = settings.get("wsearch_status", "").lower()
+            if wsearch == "running" and cpu_usage > 70.0:
+                diagnoses.append({
+                    "type": "Search Indexer Service Active",
+                    "severity": "LOW",
+                    "message": "Windows Search Indexer is active during high CPU load.",
+                    "recommendations": [
+                        "Consider pausing WSearch: run 'sc stop WSearch' in administrator terminal."
+                    ]
+                })
+
         return diagnoses
 
 def calculate_health(system_info: Dict[str, Any]) -> float:

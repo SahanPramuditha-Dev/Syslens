@@ -19,6 +19,10 @@ for (let i = 0; i < MAX_CHART_POINTS; i++) {
 
 // Chart.js helper to create premium line charts
 function createTelemetryChart(ctx, label, colorGradStart, colorGradStop) {
+    if (typeof Chart === 'undefined') {
+        console.warn("Chart.js is not defined. Telemetry graphs will be disabled.");
+        return null;
+    }
     const gradient = ctx.createLinearGradient(0, 0, 0, 180);
     gradient.addColorStop(0, colorGradStart);
     gradient.addColorStop(1, colorGradStop);
@@ -139,7 +143,7 @@ function updateDashboard(data) {
     // Add point to chart
     cpuHistory.push(cpuUsage);
     cpuHistory.shift();
-    cpuChart.update();
+    if (cpuChart) cpuChart.update();
 
     // 4. Memory Card
     const memUsage = data.memory.usage_percent;
@@ -152,7 +156,7 @@ function updateDashboard(data) {
     // Add point to chart
     memHistory.push(memUsage);
     memHistory.shift();
-    memChart.update();
+    if (memChart) memChart.update();
 
     // 5. Storage Partitions
     const partitionsContainer = document.getElementById("disk-partitions-container");
@@ -735,7 +739,6 @@ window.handleKillClick = handleKillClick;
 let playbookCommands = [];
 let activePlaybookCommand = null;
 let playbookAbortController = null;
-let syslensIsAdmin = false;
 
 async function fetchPlaybookCommands() {
     try {
@@ -743,68 +746,10 @@ async function fetchPlaybookCommands() {
         if (res.ok) {
             const data = await res.json();
             playbookCommands = data.commands || [];
-            syslensIsAdmin = !!data.is_admin;
-            updateAdminBadge();
             renderPlaybookCommands();
         }
     } catch (e) {
         console.error("Failed to load playbook commands:", e);
-    }
-}
-
-function updateAdminBadge() {
-    const badge = document.getElementById("playbook-admin-badge");
-    const elevateBtn = document.getElementById("elevate-btn");
-    if (!badge) return;
-    if (syslensIsAdmin) {
-        badge.textContent = "Administrator Mode";
-        badge.className = "admin-badge admin-active";
-        if (elevateBtn) elevateBtn.style.display = "none";
-    } else {
-        badge.textContent = "Standard User Mode";
-        badge.className = "admin-badge admin-inactive";
-        if (elevateBtn) elevateBtn.style.display = "block";
-    }
-}
-
-async function elevateServer() {
-    const elevateBtn = document.getElementById("elevate-btn");
-    if (elevateBtn) {
-        elevateBtn.disabled = true;
-        elevateBtn.textContent = "Requesting UAC...";
-    }
-    
-    try {
-        const res = await fetch("/api/admin/elevate", { method: "POST" });
-        if (res.ok) {
-            const data = await res.json();
-            showToast("⚡ UAC Prompt Launched", data.message, false);
-            
-            const badge = document.getElementById("playbook-admin-badge");
-            if (badge) {
-                badge.textContent = "Relaunching elevated...";
-                badge.className = "admin-badge admin-inactive";
-            }
-            if (elevateBtn) {
-                elevateBtn.textContent = "Reconnecting...";
-            }
-            
-            setTimeout(() => {
-                location.reload();
-            }, 3500);
-        } else {
-            const err = await res.json();
-            showToast("✗ Elevation Failed", err.detail || "Request failed.", true);
-            if (elevateBtn) {
-                elevateBtn.disabled = false;
-                elevateBtn.textContent = "Relaunch as Admin";
-            }
-        }
-    } catch (e) {
-        showToast("⚡ Reconnecting", "Server is restarting elevated...", false);
-        setTimeout(() => {
-            location.reload();
-        }, 3500);
     }
 }
 
@@ -824,10 +769,8 @@ function renderPlaybookCommands() {
         btn.className = "playbook-btn";
         
         let typeBadge = cmd.type === "gui" ? "💻 GUI" : "⌨️ CLI";
-        let adminRequiredLabel = cmd.requires_admin ? ' <span class="admin-required-indicator">ADMIN</span>' : '';
-        
         btn.innerHTML = `
-            <span style="font-weight:600; display:flex; align-items:center;">${cmd.name}${adminRequiredLabel}</span>
+            <span style="font-weight:600;">${cmd.name}</span>
             <span style="font-size:0.7rem; opacity:0.6; background:rgba(255,255,255,0.06); padding:0.1rem 0.3rem; border-radius:4px;">${typeBadge}</span>
         `;
         btn.onclick = () => openPlaybookModal(cmd);
@@ -848,16 +791,6 @@ function openPlaybookModal(cmd) {
     document.getElementById("modal-title").textContent = `Execute ${cmd.name}`;
     document.getElementById("modal-caution").textContent = cmd.caution;
     document.getElementById("modal-cmd-string").textContent = cmd.cmd_string;
-    
-    // Show/hide Admin warning
-    const adminWarning = document.getElementById("modal-admin-warning");
-    if (adminWarning) {
-        if (cmd.requires_admin && !syslensIsAdmin) {
-            adminWarning.style.display = "block";
-        } else {
-            adminWarning.style.display = "none";
-        }
-    }
     
     // Reset Terminal
     const terminalEl = document.getElementById("modal-terminal");
@@ -978,6 +911,11 @@ async function executePlaybookCommand() {
             }
         } finally {
             playbookAbortController = null;
+            if (runBtn && runBtn.textContent === "Executing...") {
+                runBtn.disabled = false;
+                runBtn.textContent = "Execute Command";
+                runBtn.style.background = "var(--gradient-primary)";
+            }
         }
     }
 }
@@ -986,7 +924,6 @@ async function executePlaybookCommand() {
 window.openPlaybookModal = openPlaybookModal;
 window.closePlaybookModal = closePlaybookModal;
 window.executePlaybookCommand = executePlaybookCommand;
-window.elevateServer = elevateServer;
 
 // Main initialization
 window.addEventListener("DOMContentLoaded", () => {

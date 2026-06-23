@@ -133,16 +133,18 @@ class SystemMetricsCollector:
     def get_process_snapshot(limit: int = 10) -> List[Dict[str, Any]]:
         """Inspect running processes, sort by CPU + memory footprint to locate hogs."""
         processes = []
-        for proc in psutil.process_iter(attrs=['pid', 'name', 'username', 'status']):
+        attrs = ['pid', 'name', 'username', 'status', 'cpu_percent', 'memory_info', 'memory_percent']
+        for proc in psutil.process_iter(attrs=attrs):
             try:
                 info = proc.info
                 # Skip System Idle Process (PID 0) which reports cumulative idle core time
                 if info['pid'] == 0:
                     continue
                 
-                cpu = proc.cpu_percent(interval=None)
-                mem_info = proc.memory_info()
-                mem_percent = proc.memory_percent()
+                cpu = info.get('cpu_percent') or 0.0
+                mem_info = info.get('memory_info')
+                mem_bytes = mem_info.rss if mem_info else 0
+                mem_percent = info.get('memory_percent') or 0.0
 
                 processes.append({
                     "pid": info['pid'],
@@ -150,7 +152,7 @@ class SystemMetricsCollector:
                     "username": info['username'] or "N/A",
                     "status": info['status'] or "N/A",
                     "cpu_percent": round(cpu, 2),
-                    "memory_bytes": mem_info.rss,
+                    "memory_bytes": mem_bytes,
                     "memory_percent": round(mem_percent, 2)
                 })
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):

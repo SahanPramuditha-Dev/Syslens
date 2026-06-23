@@ -7,29 +7,87 @@ name = "syslens"
 version = "1.0.0"
 description = "A lightweight observability, diagnostics, and anomaly detection platform for developer environments"
 readme = "README.md"
+license = { file = "LICENSE" }
 authors = [
-    { name = "SysLens Team", email = "info@syslens.io" }
+    { name = "Sahan Pramuditha", email = "sahan.dev.tech@gmail.com" }
+]
+keywords = [
+    "system", "monitoring", "telemetry", "diagnostics",
+    "anomaly-detection", "observability", "performance", "cli", "dashboard"
 ]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Topic :: System :: Monitoring",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
     "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 requires-python = ">=3.8"
+
+# Core library dependencies only — lightweight, no web server
 dependencies = [
+    "psutil>=5.9.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+# Web dashboard: FastAPI server + WebSocket stream
+dashboard = [
     "fastapi>=0.100.0",
     "uvicorn>=0.22.0",
     "websockets>=11.0",
-    "psutil>=5.9.0",
-    "rich>=13.0.0"
+]
+# Full install: CLI + dashboard
+full = [
+    "syslens[dashboard]",
+]
+# Development / testing
+dev = [
+    "syslens[dashboard]",
+    "pytest>=7.0",
+    "httpx>=0.23.0",
 ]
 
+[project.urls]
+Homepage      = "https://github.com/SahanPramuditha-Dev/Syslens"
+Documentation = "https://github.com/SahanPramuditha-Dev/Syslens#readme"
+Repository    = "https://github.com/SahanPramuditha-Dev/Syslens"
+Changelog     = "https://github.com/SahanPramuditha-Dev/Syslens/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/SahanPramuditha-Dev/Syslens/issues"
+
 [project.scripts]
-syslens = "syslens.cli:main"
+syslens  = "syslens.cli:main"
 syslensd = "syslens.dashboard.app:serve"
 
-[tool.setuptools]
-packages = ["syslens", "syslens.core", "syslens.engine", "syslens.plugins", "syslens.dashboard", "syslens.utils"]
+# ---------------------------------------------------------------------------
+# Package discovery — automatically finds all syslens.* sub-packages
+# ---------------------------------------------------------------------------
+[tool.setuptools.packages.find]
+where   = ["."]
+include = ["syslens*"]
+exclude = ["tests*", "web*", "dist*"]
 
 [tool.setuptools.package-data]
-syslens = ["dashboard/static/*", "dashboard/static/web/*"]
+syslens = [
+    "py.typed",
+    "dashboard/static/web/*",
+    "dashboard/static/web/**/*",
+]
+
+# ---------------------------------------------------------------------------
+# Pytest configuration
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v --tb=short"

@@ -29,12 +29,14 @@ Install dependencies and run SysLens in editable mode:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/syslens.git
-cd syslens
+git clone https://github.com/SahanPramuditha-Dev/Syslens.git
+cd Syslens
 
-# Install requirements and CLI package
-pip install -r requirements.txt
+# Install core library + CLI
 pip install -e .
+
+# Install with the web dashboard (FastAPI + WebSocket)
+pip install -e .[dashboard]
 ```
 
 ### CLI Command Reference
@@ -79,6 +81,17 @@ SysLens packages itself into two console command scripts (`syslens` and `syslens
 ## 📦 Developer SDK Usage
 
 SysLens can be directly embedded into your Python application or backend script.
+
+### 0. Single top-level import (recommended)
+```python
+import syslens
+
+metrics = syslens.get_system_info()
+print(f"CPU: {metrics['cpu_usage']}%  |  Memory: {metrics['memory_usage']}%")
+
+score = syslens.calculate_health(metrics)
+print(f"Health score: {score:.1f}/100")
+```
 
 ### 1. Library Telemetry Snapshot
 ```python

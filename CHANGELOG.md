@@ -1,6 +1,28 @@
-# 🔄 Changelog
+# Changelog
 
-All notable changes to the SysLens project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and adheres to Semantic Versioning.
+All notable changes to SysLens are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [Unreleased]
+
+### Added
+- Playbook command runner with streaming CLI output and confirmation UI
+- Interactive process kill from web dashboard with double-confirm safety guard
+- Task Manager upgrade in web UI: live search, freeze toggle, kill action column
+- `POST /api/processes/kill` endpoint with PID safety guards
+
+### Changed
+- `syslens/__init__.py` now re-exports all public symbols — `import syslens` is the single entry point
+- `pyproject.toml` uses automatic package discovery; dashboard deps split to `syslens[dashboard]`
+- FastAPI startup handler migrated from deprecated `@app.on_event` to `lifespan` context manager
+
+### Fixed
+- Web assets (index.html, app.js, logo) now bundled inside `syslens/dashboard/static/web/` for pip-installed packages
+- Missing `__init__.py` files added to all subpackages (`core`, `engine`, `utils`, `dashboard`, `plugins`)
 
 ---
 
@@ -110,3 +132,20 @@ All notable changes to the SysLens project will be documented in this file. The 
 - Initial prototype of the telemetry metrics collection layer utilizing raw `psutil` data.
 - Built core CPU, memory, and disk usage checks logic.
 - Configured package directory tree skeleton and setup files (`pyproject.toml`, `requirements.txt`).
+
+---
+
+<!-- Version comparison links -->
+[Unreleased]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v0.9.0...v1.0.0
+[0.9.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v0.5.0...v0.8.0
+[0.5.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v0.3.0...v0.5.0
+[0.3.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/SahanPramuditha-Dev/Syslens/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/SahanPramuditha-Dev/Syslens/releases/tag/v0.1.0
+

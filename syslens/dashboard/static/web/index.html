@@ -700,35 +700,6 @@
             border-color: rgba(255, 255, 255, 0.15);
             transform: translateX(2px);
         }
-
-        .admin-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .admin-badge.admin-active {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #34d399;
-        }
-        .admin-badge.admin-inactive {
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: #fbbf24;
-        }
-        .admin-required-indicator {
-            font-size: 0.65rem;
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
-            padding: 0.1rem 0.3rem;
-            border-radius: 4px;
-            margin-left: 0.5rem;
-            font-weight: 700;
-        }
     </style>
 </head>
 <body>
@@ -940,14 +911,10 @@
 
                 <!-- Row 4: Observability Playbook Command Center -->
                 <div class="card" style="width: 100%; margin-top: 1.5rem;">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;">
+                    <div class="card-header">
                         <div>
                             <div class="card-title">Windows Observability Playbook</div>
                             <div class="card-subtitle">Execute system diagnostics and repairs safely</div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <div id="playbook-admin-badge" class="admin-badge admin-inactive">Checking...</div>
-                            <button id="elevate-btn" onclick="elevateServer()" style="display: none; padding: 0.25rem 0.6rem; background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; color: #60a5fa; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: background 0.2s;">⚡ Relaunch as Admin</button>
                         </div>
                     </div>
                     
@@ -992,14 +959,6 @@
                 <button class="modal-close" onclick="closePlaybookModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <!-- Admin Required Warning -->
-                <div id="modal-admin-warning" class="modal-caution-card" style="display: none; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); margin-bottom: 1rem;">
-                    <p style="font-weight: 700; color: #f87171; margin-bottom: 0.25rem;">🔒 Administrator Elevation Required</p>
-                    <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-primary);">
-                        SysLens dashboard is not running as Administrator. Executing this command will trigger a User Account Control (UAC) prompt to run it in an elevated external terminal.
-                    </p>
-                </div>
-
                 <div class="modal-caution-card">
                     <p style="font-weight: 700; color: #fbbf24; margin-bottom: 0.25rem;">⚠️ Caution & Impact</p>
                     <p id="modal-caution" style="font-size: 0.85rem; line-height: 1.4; color: var(--text-primary);"></p>

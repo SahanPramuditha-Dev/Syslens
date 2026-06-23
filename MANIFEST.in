@@ -1,5 +1,25 @@
-recursive-include web *
-recursive-include syslens/dashboard *
+# Include all Python source files inside the syslens package
+recursive-include syslens *.py
+
+# Bundle web UI assets (dashboard served via FastAPI)
+recursive-include syslens/dashboard/static *
+
+# PEP 561 type marker
+include syslens/py.typed
+
+# Project documentation and metadata
 include README.md
 include LICENSE
+include CHANGELOG.md
+include CONTRIBUTING.md
+include ARCHITECTURE.md
+include ROADMAP.md
+include TESTING.md
 include requirements.txt
+include pyproject.toml
+
+# Exclude compiled bytecode and editor artifacts
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.egg-info
+global-exclude .DS_Store
