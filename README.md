@@ -7,6 +7,12 @@ SysLens is a lightweight, local-first **system observability, diagnostics, and a
 [![Status](https://img.shields.io/badge/status-beta-orange)](ROADMAP.md)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## Architecture Overview
+
+![SysLens architecture overview](assets/architecture-overview.svg)
+
+SysLens collects local system signals, derives behavioral baselines and health/anomaly insights, then exposes those results through CLI, dashboard, API, remediation, and plugin workflows. See [ARCHITECTURE.md](ARCHITECTURE.md) for the deeper design notes.
+
 ## Features
 
 - **System telemetry** — CPU, memory, disk, uptime, frequencies, and process-level resource information.
@@ -79,31 +85,6 @@ for anomaly in detector.tick():
         f"[{anomaly['severity']}] "
         f"{anomaly['metric']}: {anomaly['description']}"
     )
-```
-
-## Architecture
-
-```text
-System / OS
-    │
-    ▼
-Telemetry Collectors
-    │
-    ├── CPU / memory / disk / processes
-    └── optional plugins
-    │
-    ▼
-Health & Anomaly Engine
-    │
-    ├── health score
-    ├── rolling baselines
-    └── anomaly detection
-    │
-    ├──────────────► CLI
-    │
-    ├──────────────► Python SDK
-    │
-    └──────────────► FastAPI / WebSocket Dashboard
 ```
 
 ## Testing
