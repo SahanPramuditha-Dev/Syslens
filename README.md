@@ -1,138 +1,137 @@
-# 🧠 SysLens
+# SysLens
 
-**SysLens** is a lightweight, local-first system telemetry intelligence and observability platform designed for developers. It combines low-overhead metrics collection with a behavioral anomaly engine, actionable troubleshooting diagnostics, a modular plugin system, and dual frontend options (a dark-glass web dashboard and a premium terminal interface).
+SysLens is a lightweight, local-first **system observability, diagnostics, and anomaly-detection toolkit for Python**. It combines system telemetry, health scoring, behavioral baselines, CLI workflows, an extensible plugin model, and an optional FastAPI/WebSocket dashboard.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python Version](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/status-beta-orange)](ROADMAP.md)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
+## Features
 
-## ✨ Features
+- **System telemetry** — CPU, memory, disk, uptime, frequencies, and process-level resource information.
+- **Health scoring** — produces a high-level system health score for quick diagnostics.
+- **Behavioral baselines** — tracks rolling statistics to identify unusual system behavior.
+- **Z-score anomaly detection** — flags resource deviations and assigns severity levels.
+- **Plugin architecture** — supports additional system-information and diagnostics modules.
+- **CLI toolkit** — scan, health, live monitoring, export, and server commands.
+- **Optional web dashboard** — FastAPI + WebSocket backend for live browser-based monitoring.
+- **Developer SDK** — core telemetry and diagnostics can be imported directly into Python applications.
 
-- **📊 Comprehensive Telemetry**: Real-time tracking of CPU utilization, logical core frequencies, virtual memory state, disk partition IO, system uptime, and top resource-hogging processes.
-- **📈 Rolling Behavioral Baselines**: Learns system behavior patterns dynamically. Calculates rolling means and standard deviations locally to detect subtle deviations without external DBs.
-- **⚠ Z-Score Anomaly Engine**: Identifies CPU, memory, and disk IO spikes, categorizes severity (`LOW`, `MEDIUM`, `HIGH`), and detects correlated bottlenecks (e.g. concurrent CPU and RAM stress).
-- **🔌 Extensible Plugins**: Supports built-in plugins for Battery Health and GPU utilization, with runtime loading for custom external scripts.
-- **🖥️ Premium CLI Toolkit**:
-  - `syslens scan` - Side-by-side terminal dashboard pane.
-  - `syslens health` - Quick diagnostic checklist and score (`0-100`).
-  - `syslens live` - Real-time btop-inspired terminal stream.
-- **glassmorphic Web UI**: Stunning dark-glass design running on a FastAPI + WebSocket backend with live Chart.js animations.
+## Installation
 
----
-
-## 🚀 Quick Start
-
-### Installation
-
-Install dependencies and run SysLens in editable mode:
+### Core CLI / Library
 
 ```bash
-# Clone the repository
 git clone https://github.com/SahanPramuditha-Dev/Syslens.git
 cd Syslens
-
-# Install core library + CLI
 pip install -e .
+```
 
-# Install with the web dashboard (FastAPI + WebSocket)
+### With Web Dashboard
+
+```bash
 pip install -e .[dashboard]
 ```
 
-### CLI Command Reference
+### Development Dependencies
 
-SysLens packages itself into two console command scripts (`syslens` and `syslensd`):
-
-| Command | Action |
-|:---|:---|
-| `syslens scan` | Fetch a structured, double-column telemetry summary. |
-| `syslens scan --json` | Output system snapshot as a clean JSON structure. |
-| `syslens health` | Execute diagnostics, check anomalies, and view recommendations. |
-| `syslens live` | Run the real-time split-pane terminal dashboard stream. |
-| `syslens serve` / `syslensd` | Launch the FastAPI local server (default: `http://127.0.0.1:8000`). |
-| `syslens export` | Export the current snapshot to a glassmorphism HTML report. |
-
----
-
-## 🎨 Terminal Preview
-
-### `syslens scan`
-```text
---------------------- SYSLENS - ENTERPRISE TELEMETRY SCAN ---------------------
-
-+------- ENVIRONMENT METADATA -------+  +--------- SYSTEM HEALTH KPI ---------+
-|   * OS Platform : Windows 11       |  |                                     |
-| (AMD64)                            |  |   Overall Rating : DEGRADED         |
-|   * Hostname    : Dev-Station      |  |   Health Score   : 64.3 / 100       |
-|   * Local IP    : 192.168.1.6      |  |   Status Gauge   :                  |
-|   * Uptime      : 1h 42m 2s        |  | ##############-------- 64.3%        |
-+------------------------------------+  +-------------------------------------+
-
-+------- TELEMETRY STATISTICS -------+  +--------- TOP PROCESS HOGS ----------+
-|  Resource   Meter       Details    |  |  PID    Name   CPU %      %  Status |
-|  CPU        ##-------   16 Cores   |  |  7820   Code   0.0%  2.92%  running |
-|             16.1%       @ 2400MHz  |  |  22448  Code   0.0%  2.88%  running |
-|  Memory     #########   11.25 GB   |  |  13084  chrome 0.0%  2.78%  running |
-+------------------------------------+  +-------------------------------------+
+```bash
+pip install -e .[dev]
 ```
 
----
+SysLens requires **Python 3.8 or newer**.
 
-## 📦 Developer SDK Usage
+## CLI Reference
 
-SysLens can be directly embedded into your Python application or backend script.
+| Command | Purpose |
+| --- | --- |
+| `syslens scan` | Display a structured system telemetry snapshot |
+| `syslens scan --json` | Output telemetry in JSON form |
+| `syslens health` | Run health checks and show the current health score |
+| `syslens live` | Start the live terminal monitoring view |
+| `syslens serve` | Start the optional local web dashboard |
+| `syslensd` | Alternate entry point for the dashboard server |
+| `syslens export` | Export the current snapshot/report |
 
-### 0. Single top-level import (recommended)
+## Quick SDK Example
+
 ```python
 import syslens
 
 metrics = syslens.get_system_info()
-print(f"CPU: {metrics['cpu_usage']}%  |  Memory: {metrics['memory_usage']}%")
-
 score = syslens.calculate_health(metrics)
-print(f"Health score: {score:.1f}/100")
+
+print(f"CPU: {metrics['cpu_usage']}%")
+print(f"Memory: {metrics['memory_usage']}%")
+print(f"Health: {score:.1f}/100")
 ```
 
-### 1. Library Telemetry Snapshot
-```python
-from syslens.core.system import get_system_info
-from syslens.core.health import calculate_health
+## Anomaly Detection Example
 
-# Fetch raw metrics dict
-metrics = get_system_info()
-print(f"CPU usage: {metrics['cpu_usage']}%, Memory usage: {metrics['memory_usage']}%")
-
-# Generate Health Score
-score = calculate_health(metrics)
-print(f"System Health Rating: {score}/100")
-```
-
-### 2. Runtime Anomaly Detection
 ```python
 from syslens.engine.detector import AnomalyDetector
 
 detector = AnomalyDetector()
 
-# Periodic tick checks (returns any deviations matching the rolling baseline)
-anomalies = detector.tick()
-if anomalies:
-    for anomaly in anomalies:
-         print(f"[{anomaly['severity']}] {anomaly['metric']}: {anomaly['description']}")
+for anomaly in detector.tick():
+    print(
+        f"[{anomaly['severity']}] "
+        f"{anomaly['metric']}: {anomaly['description']}"
+    )
 ```
 
----
+## Architecture
 
-## 🛠️ Repository Navigation
+```text
+System / OS
+    │
+    ▼
+Telemetry Collectors
+    │
+    ├── CPU / memory / disk / processes
+    └── optional plugins
+    │
+    ▼
+Health & Anomaly Engine
+    │
+    ├── health score
+    ├── rolling baselines
+    └── anomaly detection
+    │
+    ├──────────────► CLI
+    │
+    ├──────────────► Python SDK
+    │
+    └──────────────► FastAPI / WebSocket Dashboard
+```
 
-To learn more about SysLens, read the comprehensive guides in the repository:
-- **[ARCHITECTURE.md](file:///c:/D/Projects/Python/Syslens/ARCHITECTURE.md)**: Explore the data flow, Mermaid architecture diagrams, and baseline Z-score formulas.
-- **[TESTING.md](file:///c:/D/Projects/Python/Syslens/TESTING.md)**: Guidelines for running pytest, mocking hardware info, and reviewing code coverage.
-- **[CONTRIBUTING.md](file:///c:/D/Projects/Python/Syslens/CONTRIBUTING.md)**: How to submit bug reports, pull requests, and code extensions.
-- **[ROADMAP.md](file:///c:/D/Projects/Python/Syslens/ROADMAP.md)**: Development milestones and future goals.
-- **[CHANGELOG.md](file:///c:/D/Projects/Python/Syslens/CHANGELOG.md)**: Detailed version history and release notes.
+## Testing
 
----
+```bash
+pytest
+```
 
-## 📜 License
+Pytest configuration is defined in `pyproject.toml`, with tests located under `tests/`.
 
-Distributed under the MIT License. See [LICENSE](file:///c:/D/Projects/Python/Syslens/LICENSE) for more details.
+## Repository Documentation
+
+- [Architecture](ARCHITECTURE.md) — data flow, design decisions, and anomaly-detection details.
+- [Testing](TESTING.md) — test strategy and hardware/system mocking guidance.
+- [Contributing](CONTRIBUTING.md) — contribution workflow.
+- [Roadmap](ROADMAP.md) — planned improvements and development milestones.
+- [Changelog](CHANGELOG.md) — version history.
+- [License](LICENSE) — MIT license terms.
+
+## Project Status
+
+SysLens is currently marked as **Beta** in the package metadata. The API, diagnostics logic, dashboard, and plugin interfaces may continue to evolve.
+
+## Author
+
+**Sahan Pramuditha**  
+BICT Undergraduate — University of Colombo
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
