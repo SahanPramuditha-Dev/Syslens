@@ -1,0 +1,27 @@
+name: Feature request
+description: Propose an improvement to SysLens
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+      description: What developer or system-observability problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility considerations
+      description: Note affected operating systems, Python versions, plugins, CLI commands, or dashboard behavior.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
